@@ -11,6 +11,7 @@ const ContactSection = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -22,13 +23,28 @@ const ContactSection = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to send message. Please try again.");
+      }
+
       setIsSubmitted(true);
       setFormData({ name: '', email: '', message: '' });
       setTimeout(() => setIsSubmitted(false), 5000);
-    }, 1500);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
 
@@ -38,14 +54,14 @@ const ContactSection = () => {
       title: "Call us",
       detail: "+234 9123734261",
       subdetail: "24/7 support available",
-      href: "tel:+966121234567"
+      href: "tel:+2349123734261"
     },
     {
       icon: <Mail className="w-5 h-5" />,
       title: "Email",
-      detail: "bilalsadatravelandtours@gmail.com",
+      detail: "hello@bilalsadatravels.com",
       subdetail: "Response within 24h",
-      href: "mailto:bilalsadatravelandtours@gmail.com"
+      href: "mailto:hello@bilalsadatravels.com"
     },
     {
       icon: <MapPin className="w-5 h-5" />,
@@ -119,7 +135,7 @@ const ContactSection = () => {
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                 </div>
                 <div className="text-base font-semibold text-slate-900">
-                  +966 55 123 4567
+                 Call +234 9123734261
                 </div>
               </div>
               <div className="text-sm text-slate-500 mt-2">
@@ -194,6 +210,8 @@ const ContactSection = () => {
                       placeholder="Tell us about your pilgrimage plans..."
                     />
                   </div>
+
+                  {error && <p className="text-sm text-red-600">{error}</p>}
 
                   <button
                     type="submit"
